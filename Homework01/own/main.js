@@ -1,4 +1,5 @@
-var cnt = 0, state = 0;
+var cnt = 0,
+    state = 0;
 item_node = { text: "", isCompelete: false };
 var todo_items = [];
 
@@ -21,17 +22,20 @@ input.addEventListener("keyup", function(event) {
     }
 });
 
-function createNewItem(str) {
+function createNewItem(str, id = cnt, complete = false) {
     var li = document.createElement("LI");
     li.classList.add("todo-app__item");
     var div = document.createElement("DIV");
     div.classList.add("todo-app__checkbox");
     var input = document.createElement("INPUT");
     input.setAttribute('type', 'checkbox');
-    input.setAttribute('id', cnt);
+    input.setAttribute('id', id);
     input.setAttribute("onClick", "clickHanlder(this)");
+    if (complete) {
+    	input.checked = true;
+    }
     var label = document.createElement("LABEL");
-    label.setAttribute('for', cnt);
+    label.setAttribute('for', id);
 
     div.appendChild(input);
     div.appendChild(label);
@@ -39,12 +43,21 @@ function createNewItem(str) {
     var h1 = document.createElement("H1");
     h1.classList.add("todo-app__item-detail");
     var t = document.createTextNode(str);
-    h1.appendChild(t);
+    if (complete) {
+    	var s = document.createElement("S");
+    	s.appendChild(t);
+    	h1.appendChild(s);
+    	li.style["opacity"] = 0.5;
+    }
+    else
+    {
+    	h1.appendChild(t);
+    }
 
     var img = document.createElement("IMG");
     img.setAttribute('src', 'img/x.png');
     img.classList.add("todo-app__item-x");
-    img.setAttribute("onClick", "deleteHanlder(" + cnt + ")");
+    img.setAttribute("onClick", "deleteHanlder(" + id + ")");
 
     li.appendChild(div);
     li.appendChild(h1);
@@ -73,30 +86,30 @@ function clickHanlder(el) {
 }
 
 function deleteHanlder(id) {
-	// console.log(id);
-	var ul = document.getElementById("todo-list");
-	var lis = document.getElementsByClassName("todo-app__item");
+    // console.log(id);
+    var ul = document.getElementById("todo-list");
+    var lis = document.getElementsByClassName("todo-app__item");
 
-	for (var i = id + 1; i < cnt; i++) {
-		lis[i].querySelector("input").setAttribute("id", i - 1);
-		lis[i].querySelector("label").setAttribute("for", i - 1);
-		lis[i].querySelector("img").setAttribute("onClick", "deleteHanlder(" + (i-1) + ")");
-	}
+    for (var i = id + 1; i < cnt; i++) {
+        lis[i].querySelector("input").setAttribute("id", i - 1);
+        lis[i].querySelector("label").setAttribute("for", i - 1);
+        lis[i].querySelector("img").setAttribute("onClick", "deleteHanlder(" + (i - 1) + ")");
+    }
 
-	ul.removeChild(lis[id]);
+    ul.removeChild(lis[id]);
 
-	todo_items.splice(id, 1);
-	cnt--;
+    todo_items.splice(id, 1);
+    cnt--;
 
-	updateCnt();
+    updateCnt();
 }
 
 function clearComplete() {
-	for (var i = cnt - 1; i >= 0; i--) {
-		if (todo_items[i].isCompelete) {
-			deleteHanlder(i);
-		}
-	}
+    for (var i = cnt - 1; i >= 0; i--) {
+        if (todo_items[i].isCompelete) {
+            deleteHanlder(i);
+        }
+    }
 }
 
 function updateCnt() {
@@ -106,16 +119,42 @@ function updateCnt() {
 }
 
 function changeState(code) {
-	if (code == 0) {
-		// show all
+    var ul = document.getElementById("todo-list");
+    if (cnt != 0) {
+        ul.innerHTML = "";
+    }
 
-	}
-	else if (code == 1) {
-		// show active
-
-	}
-	else {
-		// show complete
-		
-	}
+    if (code == 0) {
+    	// all
+        for (var i = 0; i < todo_items.length; i++) {
+        	if (todo_items[i].isCompelete) {
+        		const newItem = createNewItem(todo_items[i].text, i, true);
+        		ul.appendChild(newItem);
+        	}
+        	else 
+        	{
+        		const newItem = createNewItem(todo_items[i].text, i);
+        		ul.appendChild(createNewItem(todo_items[i].text, i));
+        	}
+        }
+    } else if (code == 1) {
+        // show active
+        // var todo_complete = todo_items.filter(el => !el.isCompelete);
+        for (var i = 0; i < todo_items.length; i++) {
+            if (!todo_items[i].isCompelete) {
+        		const newItem = createNewItem(todo_items[i].text, i);
+        		ul.appendChild(newItem);
+        	}
+        }
+    } else {
+        // show complete
+        // var todo_incomplete = todo_items.filter(el => el.isCompelete);
+        for (var i = 0; i < todo_items.length; i++) {
+            if (todo_items[i].isCompelete) {
+        		const newItem = createNewItem(todo_items[i].text, i, true);
+        		ul.appendChild(newItem);
+        	}
+        }
+    }
+    state = code;
 }
